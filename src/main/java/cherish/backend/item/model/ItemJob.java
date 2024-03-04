@@ -1,6 +1,5 @@
 package cherish.backend.item.model;
 
-import cherish.backend.member.model.Job;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -20,7 +19,13 @@ public class ItemJob {
     @JoinColumn(name = "item_id")
     private Item item;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "job_id")
-    private Job job;
+    private String name;
+
+    // 생성 메소드
+    @Enumerated(EnumType.STRING)
+    private ItemJob.Step step;
+
+    public enum Step {
+        PRIMARY_STEP, SECONDARY_STEP
+    }
 }

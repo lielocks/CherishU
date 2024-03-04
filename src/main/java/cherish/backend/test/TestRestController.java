@@ -1,14 +1,12 @@
 package cherish.backend.test;
 
 import cherish.backend.common.service.RedisService;
-import cherish.backend.member.dto.redis.EmailVerificationInfoDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.UUID;
 
 @Profile("local")
 @RestController

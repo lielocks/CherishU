@@ -35,9 +35,11 @@ public class DataRow {
     private Set<String> relation;
 
     public static DataRow of(String[] row) {
+        var idValue = row[0].replaceAll("\uFEFF", ""); // BOM 제거
+
         return new DataRow(
-            Long.parseLong(row[0]),
-            row[1],
+            Long.parseLong(idValue),
+                row[1],
             row[2],
             row[3],
             Arrays.stream(row[4].split(",")).map(String::trim).collect(Collectors.toSet()),

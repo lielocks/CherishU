@@ -1,6 +1,7 @@
 package cherish.backend.member.model;
 
 import cherish.backend.common.model.BaseTimeEntity;
+import cherish.backend.item.model.ItemJob;
 import cherish.backend.member.dto.MemberFormDto;
 import jakarta.persistence.*;
 import lombok.*;
@@ -31,7 +32,8 @@ public class Member extends BaseTimeEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "job_id")
-    private Job job;
+    private ItemJob itemJob;
+
     // 생성 메소드
     @Enumerated(EnumType.STRING)
     private Role roles;
@@ -70,8 +72,8 @@ public class Member extends BaseTimeEntity {
         this.password = password;
     }
 
-    public void changeInfo(String nickname, Job job){
+    public void changeInfo(String nickname, ItemJob itemJob){
         this.nickname = nickname;
-        this.job = job;
+        this.itemJob = itemJob;
     }
 }
