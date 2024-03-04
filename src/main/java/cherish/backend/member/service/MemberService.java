@@ -3,15 +3,15 @@ package cherish.backend.member.service;
 import cherish.backend.auth.jwt.JwtTokenProvider;
 import cherish.backend.auth.jwt.TokenInfo;
 import cherish.backend.common.service.RedisService;
+import cherish.backend.item.model.ItemJob;
+import cherish.backend.item.repository.ItemJobRepository;
 import cherish.backend.member.constant.Constants;
 import cherish.backend.member.dto.ChangeInfoRequest;
 import cherish.backend.member.dto.MemberFormDto;
 import cherish.backend.member.dto.MemberInfoResponse;
 import cherish.backend.member.email.service.EmailService;
 import cherish.backend.member.email.util.EmailCodeGenerator;
-import cherish.backend.member.model.Job;
 import cherish.backend.member.model.Member;
-import cherish.backend.member.repository.JobRepository;
 import cherish.backend.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +37,7 @@ public class MemberService {
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final RedisService redisService;
-    private final JobRepository jobRepository;
+    private final ItemJobRepository itemJobRepository;
 
 
     @Transactional
@@ -136,9 +136,9 @@ public class MemberService {
             }
             member.changePwd(passwordEncoder.encode(request.getNewPassword()));
         }
-        Job job = jobRepository.findByName(request.getJobName())
+        ItemJob itemJob = itemJobRepository.findByName(request.getJobName())
             .orElseThrow(() -> new IllegalArgumentException(Constants.JOB_NOT_FOUND));
-        member.changeInfo(request.getNickname(), job);
+        member.changeInfo(request.getNickname(), itemJob);
         memberRepository.save(member);
     }
 

@@ -6,8 +6,6 @@ import cherish.backend.category.repository.FilterRepository;
 import cherish.backend.item.constant.ItemUrlPlatforms;
 import cherish.backend.item.model.*;
 import cherish.backend.item.repository.*;
-import cherish.backend.member.model.Job;
-import cherish.backend.member.repository.JobRepository;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvException;
 import jakarta.annotation.PostConstruct;
@@ -17,10 +15,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnResource;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.List;
 
 @ConditionalOnResource(resources = "data.csv")
@@ -32,7 +32,6 @@ public class DataParser {
 
     private final ItemRepository itemRepository;
     private final CategoryRepository categoryRepository;
-    private final JobRepository jobRepository;
     private final ItemCategoryRepository itemCategoryRepository;
     private final ItemUrlRepository itemUrlRepository;
     private final ItemJobRepository itemJobRepository;
@@ -41,10 +40,13 @@ public class DataParser {
 
     @Transactional(rollbackOn = RuntimeException.class)
     public void read() throws RuntimeException {
-        try (CSVReader csvReader = new CSVReader(new FileReader("data.csv"))) {
-            List<DataRow> dataList = csvReader.readAll().stream()
-                .map(DataRow::of)
-                .toList();
+        try (InputStream inputStream = new ClassPathResource("data.csv").getInputStream();
+             CSVReader csvReader = new CSVReader(new InputStreamReader(inputStream))) {
+
+             List<DataRow> dataList = csvReader.readAll().stream()
+                    .map(DataRow::of)
+                    .toList();
+
             for (DataRow row : dataList) {
                 // item table 저장된것 조회
                 int price;
@@ -98,6 +100,7 @@ public class DataParser {
                     Category childCategory = categoryRepository.findByName(childCategoryName)
                         .orElseGet(() -> categoryRepository.save(
                             Category.builder()
+                                    .parent(category)
                                 .name(childCategoryName)
                                 .build()
                         ));
@@ -184,34 +187,24 @@ public class DataParser {
                 }
                 // 1차 직업군 insert
                 for (String jobName : row.getJob()) {
-                    Job job = jobRepository.findByName(jobName)
-                        .orElseGet(() -> jobRepository.save(
-                            Job.builder()
-                                .name(jobName)
-                                .build()
-                        ));
-                    if (!itemJobRepository.existsByItemAndJob(item, job)) {
+                    if (!itemJobRepository.existsByItemAndName(item, jobName)) {
                         itemJobRepository.save(
                             ItemJob.builder()
                                 .item(item)
-                                .job(job)
-                                .build()
+                                .name(jobName)
+                                    .step(ItemJob.Step.PRIMARY_STEP)
+                                    .build()
                         );
                     }
                 }
                 // 2차 직업군 insert
                 for (String jobChildName : row.getJobChild()) {
-                    Job childJob = jobRepository.findByName(jobChildName)
-                        .orElseGet(() -> jobRepository.save(
-                            Job.builder()
-                                .name(jobChildName)
-                                .build()
-                        ));
-                    if (!itemJobRepository.existsByItemAndJob(item, childJob)) {
+                    if (!itemJobRepository.existsByItemAndName(item, jobChildName)) {
                         itemJobRepository.save(
                             ItemJob.builder()
                                 .item(item)
-                                .job(childJob)
+                                    .name(jobChildName)
+                                .step(ItemJob.Step.SECONDARY_STEP)
                                 .build()
                         );
                     }
@@ -219,7 +212,7 @@ public class DataParser {
                 // situation filter id = 2
                 long situationId = 2L;
                 for (String situation : row.getSituation()) {
-                    if (itemFilterRepository.findItemFilterByNameAndFilterId(situation, situationId).isEmpty()) {
+                    if (itemFilterRepository.findItemFilterByNameAndFilterId(situation, situationId, item.getId()).isEmpty()) {
                         itemFilterRepository.save(
                             ItemFilter.builder()
                                 .item(item)
@@ -231,7 +224,7 @@ public class DataParser {
                 }
                 long emotionId = 3L;
                 for (String emotion : row.getEmotion()) {
-                    if (itemFilterRepository.findItemFilterByNameAndFilterId(emotion, emotionId).isEmpty()) {
+                    if (itemFilterRepository.findItemFilterByNameAndFilterId(emotion, emotionId, item.getId()).isEmpty()) {
                         itemFilterRepository.save(
                             ItemFilter.builder()
                                 .item(item)
@@ -243,7 +236,7 @@ public class DataParser {
                 }
                 long genderId = 4L;
                 for (String gender : row.getGender()) {
-                    if (itemFilterRepository.findItemFilterByNameAndFilterId(gender, genderId).isEmpty()) {
+                    if (itemFilterRepository.findItemFilterByNameAndFilterId(gender, genderId, item.getId()).isEmpty()) {
                         itemFilterRepository.save(
                             ItemFilter.builder()
                                 .item(item)
@@ -255,7 +248,7 @@ public class DataParser {
                 }
                 long preferenceId = 5L;
                 for (String preference : row.getPreference()) {
-                    if (itemFilterRepository.findItemFilterByNameAndFilterId(preference, preferenceId).isEmpty()) {
+                    if (itemFilterRepository.findItemFilterByNameAndFilterId(preference, preferenceId, item.getId()).isEmpty()) {
                         itemFilterRepository.save(
                             ItemFilter.builder()
                                 .item(item)
@@ -267,7 +260,7 @@ public class DataParser {
                 }
                 long typeId = 6L;
                 for (String type : row.getType()) {
-                    if (itemFilterRepository.findItemFilterByNameAndFilterId(type, typeId).isEmpty()) {
+                    if (itemFilterRepository.findItemFilterByNameAndFilterId(type, typeId, item.getId()).isEmpty()) {
                         itemFilterRepository.save(
                             ItemFilter.builder()
                                 .item(item)
@@ -279,7 +272,7 @@ public class DataParser {
                 }
                 long relationId = 7L;
                 for (String relation : row.getRelation()) {
-                    if (itemFilterRepository.findItemFilterByNameAndFilterId(relation, relationId).isEmpty()) {
+                    if (itemFilterRepository.findItemFilterByNameAndFilterId(relation, relationId, item.getId()).isEmpty()) {
                         itemFilterRepository.save(
                             ItemFilter.builder()
                                 .item(item)

@@ -29,7 +29,6 @@ import static cherish.backend.item.model.QItemCategory.itemCategory;
 import static cherish.backend.item.model.QItemFilter.itemFilter;
 import static cherish.backend.item.model.QItemJob.itemJob;
 import static cherish.backend.item.model.QItemLike.itemLike;
-import static cherish.backend.member.model.QJob.job;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.springframework.util.StringUtils.hasText;
 
@@ -85,36 +84,102 @@ public class ItemFilterRepositoryImpl implements ItemFilterRepositoryCustom{
     public Page<ItemSearchResponseDto> searchItem(ItemSearchCondition searchCondition, Member member, Pageable pageable) {
         BooleanExpression isLiked = member != null ? new CaseBuilder().when(itemLike.member.eq(member)).then(true).otherwise(false) : Expressions.asBoolean(false);
 
-        List<ItemSearchResponseDto> content = queryDslConfig.jpaQueryFactory()
+        BooleanBuilder booleanBuilder = new BooleanBuilder();
+
+        JPAQuery<ItemSearchResponseDto> mainSearchQuery = queryDslConfig.jpaQueryFactory()
                 .selectDistinct(Projections.constructor(ItemSearchResponseDto.class,
                         item.id, item.name, item.brand, item.description, item.price, item.imgUrl, isLiked.as("isLiked"), item.views, item.modifiedDate))
                 .from(item)
-                .leftJoin(item.itemFilters, itemFilter)
-                .leftJoin(item.itemJobs, itemJob)
-                .leftJoin(item.itemCategories, itemCategory)
-                .leftJoin(itemFilter.filter, filter)
-                .leftJoin(itemJob.job, job)
-                .leftJoin(itemCategory.category, category)
                 .leftJoin(itemLike).on(item.id.eq(itemLike.item.id).and(member != null ? itemLike.member.id.eq(member.getId()) : null))
                 .leftJoin(itemLike.member, QMember.member)
-                .where(getSearchCondition(searchCondition))
-                .orderBy(getOrderSpecifier(searchCondition.getSort())) // 기본 정렬
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetch();
+                .where(booleanBuilder);
+
 
         JPAQuery<Long> total = queryDslConfig.jpaQueryFactory()
                 .select(item.id.countDistinct())
                 .from(item)
-                .leftJoin(item.itemFilters, itemFilter)
-                .leftJoin(item.itemJobs, itemJob)
-                .leftJoin(item.itemCategories, itemCategory)
-                .leftJoin(itemFilter.filter, filter)
-                .leftJoin(itemJob.job, job)
-                .leftJoin(itemCategory.category, category)
                 .leftJoin(itemLike).on(item.id.eq(itemLike.item.id).and(member != null ? itemLike.member.id.eq(member.getId()) : null))
                 .leftJoin(itemLike.member, QMember.member)
-                .where(getSearchCondition(searchCondition));
+                .where(booleanBuilder);
+
+        if (searchCondition.getCategoryName() != null && !searchCondition.getCategoryName().isEmpty()) {
+            mainSearchQuery = mainSearchQuery
+                    .leftJoin(item.itemCategories, itemCategory)
+                    .leftJoin(itemCategory.category, category)
+                    .where(category.name.in(searchCondition.getCategoryName()));
+        }
+
+        if (isNotEmpty(searchCondition.getJobName())) {
+            mainSearchQuery = mainSearchQuery
+                    .leftJoin(item.itemJobs, itemJob)
+                    .where(itemJob.name.in(searchCondition.getJobName()));
+        }
+
+        if (isNotEmpty(searchCondition.getSituationName()) || isNotEmpty(searchCondition.getGender()) || isNotEmpty(searchCondition.getEmotionName())) {
+            List<String> conditions = new ArrayList<>();
+
+            if (isNotEmpty(searchCondition.getSituationName())) {
+                conditions.add(searchCondition.getSituationName());
+            }
+
+            if (isNotEmpty(searchCondition.getGender())) {
+                conditions.add(searchCondition.getGender());
+            }
+
+            if (isNotEmpty(searchCondition.getEmotionName())) {
+                conditions.add(searchCondition.getEmotionName());
+            }
+
+            List<Long> list = queryDslConfig.jpaQueryFactory()
+                    .select(itemFilter.item.id)
+                    .from(itemFilter)
+                    .where(itemFilter.name.in(conditions))
+                    .groupBy(itemFilter.item.id)
+                    .having(itemFilter.name.countDistinct().goe(conditions.size()))
+                    .fetch();
+
+            mainSearchQuery.where(item.id.in(list));
+            total.where(item.id.in(list));
+        }
+
+        if (isNotEmpty(searchCondition.getKeyword())) {
+            String keyword = searchCondition.getKeyword();
+            booleanBuilder.or(
+                    item.name.contains(keyword)
+                            .or(item.brand.contains(keyword))
+            );
+
+            // 키워드가 category에 속한 경우 조인 수행
+            if (itemCategory.category.name.contains(keyword) != null || category.name.contains(keyword) != null) {
+                mainSearchQuery = mainSearchQuery
+                        .leftJoin(item.itemCategories, itemCategory)
+                        .leftJoin(itemCategory.category, category);
+                booleanBuilder.or(itemCategory.category.name.contains(keyword))
+                        .or(category.name.contains(keyword));
+            }
+
+            // 키워드가 itemJob에 속한 경우 조인 수행
+            if (itemJob.name.contains(keyword) != null) {
+                mainSearchQuery = mainSearchQuery
+                        .leftJoin(item.itemJobs, itemJob);
+                booleanBuilder.or(itemJob.name.contains(keyword));
+            }
+
+            // 키워드가 itemFilter에 속한 경우 조인 수행
+            if (itemFilter.name.contains(keyword)!= null) {
+                mainSearchQuery = mainSearchQuery
+                        .leftJoin(item.itemFilters, itemFilter)
+                        .leftJoin(itemFilter.filter, filter);
+                booleanBuilder.or(itemFilter.name.contains(keyword));
+            }
+        }
+
+        List<ItemSearchResponseDto> content = mainSearchQuery
+                .orderBy(getOrderSpecifier(searchCondition.getSort())) // 기본 정렬
+                .where(booleanBuilder)
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
 
         return PageableExecutionUtils.getPage(content, pageable, total::fetchFirst);
     }
@@ -131,67 +196,6 @@ public class ItemFilterRepositoryImpl implements ItemFilterRepositoryCustom{
             case ItemSortConstants.LEAST_EXPENSIVE -> new OrderSpecifier<>(Order.ASC, item.price);
             default -> throw new IllegalArgumentException("Sort error");
         };
-    }
-
-    private BooleanBuilder getSearchCondition(ItemSearchCondition searchCondition) {
-        BooleanBuilder booleanBuilder = new BooleanBuilder();
-
-        if (isNotEmpty(searchCondition.getKeyword())) {
-            String keyword = searchCondition.getKeyword();
-            booleanBuilder = booleanBuilder.or(
-                    item.name.contains(keyword)
-                            .or(item.brand.contains(keyword))
-                            .or(category.name.contains(keyword))
-                            .or(itemCategory.category.name.contains(keyword))
-                            .or(job.name.contains(keyword))
-                            .or(itemJob.job.name.contains(keyword))
-                            .or(filter.name.contains(keyword))
-                            .or(itemFilter.name.contains(keyword))
-            );
-        }
-
-        // 필터링 조건 추가
-        if (searchCondition.getCategoryName() != null && !searchCondition.getCategoryName().isEmpty()) {
-            BooleanExpression categoryExpression = null;
-            for (String categoryName : searchCondition.getCategoryName()) {
-                if (categoryExpression == null) {
-                    categoryExpression = category.name.contains(categoryName);
-                } else {
-                    categoryExpression = categoryExpression.or(category.name.contains(categoryName));                }
-            }
-            booleanBuilder.and(categoryExpression);
-        }
-
-        if (isNotEmpty(searchCondition.getJobName())) {
-            booleanBuilder.and(job.name.containsIgnoreCase(searchCondition.getJobName()));
-        }
-
-        List<String> conditions = new ArrayList<>();
-
-        if (isNotEmpty(searchCondition.getSituationName())) {
-            conditions.add(searchCondition.getSituationName());
-        }
-
-        if (isNotEmpty(searchCondition.getGender())) {
-            conditions.add(searchCondition.getGender());
-        }
-
-        if (isNotEmpty(searchCondition.getEmotionName())) {
-            conditions.add(searchCondition.getEmotionName());
-        }
-
-        if (!conditions.isEmpty()) {
-            List<Long> list = queryDslConfig.jpaQueryFactory().select(itemFilter.item.id)
-                    .from(itemFilter)
-                    .where(itemFilter.name.in(conditions))
-                    .groupBy(itemFilter.item.id)
-                    .having(itemFilter.name.countDistinct().goe(conditions.size()))
-                    .fetch();
-
-            booleanBuilder.and(item.id.in(list));
-        }
-
-        return booleanBuilder;
     }
 
     private BooleanExpression itemFilterNameEq(String itemFilterName) {

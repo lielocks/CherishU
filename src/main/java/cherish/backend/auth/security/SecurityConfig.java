@@ -28,6 +28,7 @@ import org.springframework.web.cors.CorsUtils;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.io.PrintWriter;
+import java.util.Set;
 
 @EnableConfigurationProperties(CorsProperties.class)
 @Configuration
@@ -81,10 +82,22 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
+        Set<String> allowedOrigins = corsProperties.getAllowedOrigins();
+        if (allowedOrigins != null) {
+            allowedOrigins.forEach(config::addAllowedOrigin);
+        }
+        Set<String> allowedMethods = corsProperties.getAllowedMethods();
+        if (allowedMethods != null) {
+            allowedMethods.forEach(config::addAllowedMethod);
+        }
+        Set<String> allowedHeaders = corsProperties.getAllowedHeaders();
+        if (allowedHeaders != null) {
+            allowedHeaders.forEach(config::addAllowedHeader);
+        }
 
-        corsProperties.getAllowedOrigins().forEach(config::addAllowedOrigin);
-        corsProperties.getAllowedMethods().forEach(config::addAllowedMethod);
-        corsProperties.getAllowedHeaders().forEach(config::addAllowedHeader);
+//        corsProperties.getAllowedOrigins().forEach(config::addAllowedOrigin);
+//        corsProperties.getAllowedMethods().forEach(config::addAllowedMethod);
+//        corsProperties.getAllowedHeaders().forEach(config::addAllowedHeader);
         config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

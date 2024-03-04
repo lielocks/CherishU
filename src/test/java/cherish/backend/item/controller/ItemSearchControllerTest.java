@@ -26,7 +26,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(PublicItemController.class)
-public class ItemSearchControllerTest {
+public class
+ItemSearchControllerTest {
     @Autowired
     private MockMvc mockMvc;
     @MockBean
