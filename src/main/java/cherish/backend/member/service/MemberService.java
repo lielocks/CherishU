@@ -9,8 +9,6 @@ import cherish.backend.member.constant.Constants;
 import cherish.backend.member.dto.ChangeInfoRequest;
 import cherish.backend.member.dto.MemberFormDto;
 import cherish.backend.member.dto.MemberInfoResponse;
-import cherish.backend.member.email.service.EmailService;
-import cherish.backend.member.email.util.EmailCodeGenerator;
 import cherish.backend.member.model.Member;
 import cherish.backend.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +33,7 @@ public class MemberService {
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final JwtTokenProvider jwtTokenProvider;
     private final PasswordEncoder passwordEncoder;
-    private final EmailService emailService;
+    //    private final EmailService emailService;
     private final RedisService redisService;
     private final ItemJobRepository itemJobRepository;
 
@@ -59,9 +57,9 @@ public class MemberService {
             throw new IllegalStateException(Constants.EMAIL_ALREADY);
         }
         // 회원가입 시 인증된 이메일인지 검증하는 로직 추가
-        if (!isVerifiedEmail(memberFormDto.getEmail())) {
-            throw new IllegalArgumentException(Constants.EMAIL_VERIFICATION_EXPIRED);
-        }
+//        if (!isVerifiedEmail(memberFormDto.getEmail())) {
+//            throw new IllegalArgumentException(Constants.EMAIL_VERIFICATION_EXPIRED);
+//        }
         Member savedMember = memberRepository.save(Member.createMember(memberFormDto, passwordEncoder));
         return savedMember.getId();
     }
@@ -79,7 +77,7 @@ public class MemberService {
     @Transactional
     public void changePwd(String email, String password) {
         Member member = memberRepository.findByEmail(email)
-            .orElseThrow(() -> new IllegalStateException(Constants.MEMBER_NOT_FOUND));
+                .orElseThrow(() -> new IllegalStateException(Constants.MEMBER_NOT_FOUND));
         // 비밀번호 변경 시 인증된 이메일인지 검증하는 로직 추가
         if (!isVerifiedEmail(email)) {
             throw new IllegalArgumentException(Constants.EMAIL_VERIFICATION_EXPIRED);
@@ -88,22 +86,22 @@ public class MemberService {
         memberRepository.save(member);
     }
 
-    public void sendEmailCode(String email) {
-        if (redisService.hasEmailCodeKey(email)) {
-            throw new IllegalStateException(Constants.TIME_LIMIT);
-        }
-        int dailyCount = redisService.getEmailCount(email);
-        if (dailyCount >= 3) {
-            throw new IllegalStateException(Constants.DAILY_COUNT_EXCEEDED);
-        }
-        if (isMember(email)) {
-            throw new IllegalStateException(Constants.EMAIL_ALREADY);
-        }
-        String code = EmailCodeGenerator.generateCode();
-        emailService.sendMessage(email, code);
-        setRedisCode(email, code);
-        log.info("code {} has been sent to {}", code, email);
-    }
+//    public void sendEmailCode(String email) {
+//        if (redisService.hasEmailCodeKey(email)) {
+//            throw new IllegalStateException(Constants.TIME_LIMIT);
+//        }
+//        int dailyCount = redisService.getEmailCount(email);
+//        if (dailyCount >= 3) {
+//            throw new IllegalStateException(Constants.DAILY_COUNT_EXCEEDED);
+//        }
+//        if (isMember(email)) {
+//            throw new IllegalStateException(Constants.EMAIL_ALREADY);
+//        }
+//        String code = EmailCodeGenerator.generateCode();
+//        emailService.sendMessage(email, code);
+//        setRedisCode(email, code);
+//        log.info("code {} has been sent to {}", code, email);
+//    }
 
     private void setRedisCode(String email, String validCode) {
         int emailTimeLimit = 5 * 60;
@@ -137,7 +135,7 @@ public class MemberService {
             member.changePwd(passwordEncoder.encode(request.getNewPassword()));
         }
         ItemJob itemJob = itemJobRepository.findByName(request.getJobName())
-            .orElseThrow(() -> new IllegalArgumentException(Constants.JOB_NOT_FOUND));
+                .orElseThrow(() -> new IllegalArgumentException(Constants.JOB_NOT_FOUND));
         member.changeInfo(request.getNickname(), itemJob);
         memberRepository.save(member);
     }
@@ -150,20 +148,20 @@ public class MemberService {
         return redisService.hasVerifiedKey(email) && redisService.isEmailVerified(email);
     }
 
-    public void setEmailCodeForPasswordReset(String email) {
-        if (redisService.hasEmailCodeKey(email)) {
-            throw new IllegalStateException(Constants.TIME_LIMIT);
-        }
-        int dailyCount = redisService.getEmailCount(email);
-        if (dailyCount >= 3) {
-            throw new IllegalStateException(Constants.DAILY_COUNT_EXCEEDED);
-        }
-        if (!isMember(email)) {
-            throw new IllegalStateException(Constants.MEMBER_NOT_FOUND);
-        }
-        String code = EmailCodeGenerator.generateCode();
-        emailService.sendMessage(email, code);
-        setRedisCode(email, code);
-        log.info("code {} has been sent to {}", code, email);
-    }
+//    public void setEmailCodeForPasswordReset(String email) {
+//        if (redisService.hasEmailCodeKey(email)) {
+//            throw new IllegalStateException(Constants.TIME_LIMIT);
+//        }
+//        int dailyCount = redisService.getEmailCount(email);
+//        if (dailyCount >= 3) {
+//            throw new IllegalStateException(Constants.DAILY_COUNT_EXCEEDED);
+//        }
+//        if (!isMember(email)) {
+//            throw new IllegalStateException(Constants.MEMBER_NOT_FOUND);
+//        }
+//        String code = EmailCodeGenerator.generateCode();
+//        emailService.sendMessage(email, code);
+//        setRedisCode(email, code);
+//        log.info("code {} has been sent to {}", code, email);
+//    }
 }

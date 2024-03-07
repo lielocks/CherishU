@@ -50,7 +50,7 @@ public class MemberController {
 
             Range<Integer> range = Range.between(8, 20);
             if (!range.contains(request.getOldPassword().length())
-                || !range.contains(request.getNewPassword().length())) {
+                    || !range.contains(request.getNewPassword().length())) {
                 throw new IllegalArgumentException("비밀번호 길이는 8~20자여야 합니다.");
             }
         }
@@ -67,11 +67,11 @@ public class MemberController {
     public void logout(HttpServletRequest request, HttpServletResponse response, @CurrentUser Member member) {
         // httpOnly refresh token 쿠키 즉시 만료로 설정
         ResponseCookie cookie = ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, StringUtils.EMPTY)
-            .maxAge(0)
-            .path("/")
-            .secure(true)
-            .httpOnly(true)
-            .build();
+                .maxAge(0)
+                .path("/")
+                .secure(true)
+                .httpOnly(true)
+                .build();
         response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
         // 레디스에서 refresh 토큰 삭제
         redisService.deleteRefreshTokenKey(member.getEmail());
@@ -81,4 +81,3 @@ public class MemberController {
         redisService.blockAccessToken(accessToken, leftExpirationMillis / 1000);
     }
 }
-

@@ -42,12 +42,12 @@ public class PublicMemberController {
         var token = memberService.login(memberLoginRequestDto.getEmail(), memberLoginRequestDto.getPassword());
         log.info("member login = {}", memberLoginRequestDto.getEmail());
         ResponseCookie cookie = ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, token.getRefreshToken())
-            .maxAge(jwtConfig.getRefreshTokenExpireSeconds())
-            .path("/")
-            .sameSite(Cookie.SameSite.NONE.attributeValue())
-            .secure(true)
-            .httpOnly(true)
-            .build();
+                .maxAge(jwtConfig.getRefreshTokenExpireSeconds())
+                .path("/")
+                .sameSite(Cookie.SameSite.NONE.attributeValue())
+                .secure(true)
+                .httpOnly(true)
+                .build();
         response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
         return token.toResponseDto();
     }
@@ -59,16 +59,16 @@ public class PublicMemberController {
         memberService.changePwd(request.getEmail(), request.getPassword());
     }
     // 회원가입 시 코드 발송
-    @PostMapping("/register/code")
-    public void sendEmailCodeForRegistration(@RequestBody @Valid EmailRequest emailRequest){
-        memberService.sendEmailCode(emailRequest.getEmail());
-    }
+//    @PostMapping("/register/code")
+//    public void sendEmailCodeForRegistration(@RequestBody @Valid EmailRequest emailRequest){
+//        memberService.sendEmailCode(emailRequest.getEmail());
+//    }
 
     // 비밀번호 재설정 시 코드 발송
-    @PostMapping("/change-password/code")
-    public void sendEmailCodeForPasswordReset(@RequestBody @Valid EmailRequest emailRequest) {
-        memberService.setEmailCodeForPasswordReset(emailRequest.getEmail());
-    }
+//    @PostMapping("/change-password/code")
+//    public void sendEmailCodeForPasswordReset(@RequestBody @Valid EmailRequest emailRequest) {
+//        memberService.setEmailCodeForPasswordReset(emailRequest.getEmail());
+//    }
     // 이메일 코드 검증
     @PostMapping("/code-valid")
     public void validEmailCode(@RequestBody @Valid EmailCodeValidationRequest request){
