@@ -88,7 +88,7 @@ cors:
     - http://127.0.0.1:5173
     - https://cherishu.firebaseapp.com
     - https://cherishu.web.app
-    - http://ec2-3-35-11-65.ap-northeast-2.compute.amazonaws.com:6061
+    - http://ec2-3-34-124-104.ap-northeast-2.compute.amazonaws.com:6061
   allowed-headers:
     - Origin
     - X-Requested-With
