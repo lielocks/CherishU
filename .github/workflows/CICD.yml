@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ "dev" ]
 
+env:
+  RESOURCE_PATH: ./src/main/resources/application.yml
+
 permissions:
   contents: read
 
