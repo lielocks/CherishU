@@ -20,10 +20,10 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Set yml file
+      - name: Set Yaml
         uses: microsoft/variable-substitution@v1
         with:
-          files: ${{ github.workspace }}/src/main/resources/application.yml
+          files: ./src/main/resources/application.yml 
         env:
           spring.datasource.password: ${{ secrets.PASSWORD }}
 
