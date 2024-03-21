@@ -23,7 +23,7 @@ jobs:
       - name: Set yml file
         uses: microsoft/variable-substitution@v1
         with:
-          files: ./src/main/resources/application.yml
+          files: ${{ github.workspace }}/src/main/resources/application.yml
         env:
           spring.datasource.password: ${{ secrets.PASSWORD }}
 
