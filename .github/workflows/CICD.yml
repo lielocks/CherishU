@@ -20,7 +20,7 @@ jobs:
           java-version: '17'
           distribution: 'corretto'
 
-      - name: Set YML
+      - name: Set yml file
         uses: microsoft/variable-substitution@v1
         with:
           files: ./src/main/resources/application.yml 
