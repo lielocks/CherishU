@@ -18,9 +18,9 @@ jobs:
         uses: actions/setup-java@v3
         with:
           java-version: '17'
-          distribution: 'temurin'
+          distribution: 'corretto'
 
-      - name: Set Yaml
+      - name: Set YML
         uses: microsoft/variable-substitution@v1
         with:
           files: ./src/main/resources/application.yml 
