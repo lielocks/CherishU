@@ -20,6 +20,13 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      - name: Set yml file
+        uses: microsoft/variable-substitution@v1
+        with:
+          files: ${{ env.RESOUCE_PATH }}
+        env:
+          spring.datasource.password: ${{ secrets.PASSWORD }}
+
        # gradle chmod
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
