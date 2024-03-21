@@ -85,7 +85,9 @@ jobs:
         run: |
           aws ec2 authorize-security-group-ingress --group-name ${{ secrets.AWS_SG_NAME }} --protocol tcp --port 22 --cidr ${{ steps.ip.outputs.ipv4 }}/32    
           aws ec2 authorize-security-group-ingress --group-name ${{ secrets.AWS_SG_NAME }} --protocol tcp --port 80 --cidr ${{ steps.ip.outputs.ipv4 }}/32 
-          aws ec2 authorize-security-group-ingress --group-name ${{ secrets.AWS_SG_NAME }} --protocol tcp --port 8080 --cidr ${{ steps.ip.outputs.ipv4 }}/32 
+          aws ec2 authorize-security-group-ingress --group-name ${{ secrets.AWS_SG_NAME }} --protocol tcp --port 8080 --cidr ${{ steps.ip.outputs.ipv4 }}/32                     
+          aws ec2 authorize-security-group-ingress --group-name ${{ secrets.AWS_SG_NAME }} --protocol tcp --port 8081 --cidr ${{ steps.ip.outputs.ipv4 }}/32 
+
           
       - name: Check deploy server URL
         uses: jtalk/url-health-check-action@v3
