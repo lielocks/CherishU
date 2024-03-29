@@ -88,6 +88,7 @@ jobs:
           max-attempts: 5
           retry-delay: 10s
 
+      # nginx 프록시 변경
       - name: Change nginx upstream
         uses: appleboy/ssh-action@master
         with:
