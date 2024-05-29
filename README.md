@@ -60,12 +60,10 @@
 <p>
   <img src="https://github.com/lielocks/CherishU/assets/107406265/e3dfc271-c192-4a84-90cd-3274a04f2690" alt="AWS_EC2" width=15% height="120">
   <img src="https://github.com/lielocks/CherishU/assets/107406265/a45081d1-3fab-4cbb-83b4-b3cac5f2589c" alt="AWS_SES" width=15% height="120">
-  <img src="https://github.com/lielocks/CherishU/assets/107406265/bf1b34b5-550b-4854-84e0-9ebe705eccb9" alt="firebase" width=15% height="120">
 </p>
 
 - **AWS EC2** 를 사용해 서버를 구축했어요.
 - **AWS SES** 를 사용
-- **firebase**
 
 
 #### CI/CD
@@ -85,18 +83,22 @@
 <p>
   <img src="https://github.com/lielocks/CherishU/assets/107406265/abdae15f-4b59-4ed3-ba43-2d670ce3618a" alt="mysql" width=15%>
   <img src="https://github.com/lielocks/CherishU/assets/107406265/235396b4-a0e9-4af9-9c83-8e519ebb80ba" alt="elasticache" width=15%>
+  <img src="https://github.com/lielocks/CherishU/assets/107406265/bf1b34b5-550b-4854-84e0-9ebe705eccb9" alt="firebase" width=15% height="120">
 </p>
 
 - 데이터 베이스는 **PostgreSQL**을 사용해요.
 - elasticache
+- **firebase**
 
-#### Network
+#### Config
 
 <p>
-  <img src="https://user-images.githubusercontent.com/52682603/138835931-103681d7-a630-45b0-8103-e5f56ef15d9e.png" alt="nginx" width=15%>
+  <img src="https://github.com/lielocks/CherishU/assets/107406265/b536099d-90a6-4acf-8316-cf15424667fc" alt="nginx" width=15%>
+  <img src="https://github.com/lielocks/CherishU/assets/107406265/29c36dca-021b-43f6-b6e4-ec82ab5f6da7" alt="actuator" width=15%>
 </p>
 
-- **Nginx** 를 리버스 프록시와 로드 밸런서로 활용하고 있어요.
+- **vault**
+- spring actuator
 
 </br>
 
