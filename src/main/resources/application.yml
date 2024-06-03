@@ -1,3 +1,14 @@
+spring:
+  profiles:
+    active: on
+    group:
+      on: local, live
+      blue: blue, local
+      green: green, local
+
+server:
+  env: blue
+---
 server:
   shutdown: graceful # 정상적인 종료
   servlet:
@@ -29,9 +40,10 @@ spring:
       ddl-auto: none
     properties:
       hibernate:
-#        default_schema: postgres
+        #        default_schema: postgres
         dialect: org.hibernate.dialect.PostgreSQLDialect
   profiles:
+    active: local
     default: local
   data:
     redis:
@@ -89,6 +101,7 @@ cors:
     - https://cherishu.firebaseapp.com
     - https://cherishu.web.app
     - http://ec2-3-39-238-133.ap-northeast-2.compute.amazonaws.com:6061
+    - http://3.37.220.184:80
   allowed-headers:
     - Origin
     - X-Requested-With
@@ -131,6 +144,7 @@ decorator:
   datasource:
     p6spy:
       enable-logging: true
+
 ---
 spring:
   config:
@@ -166,53 +180,34 @@ vault.props:
   roleId: c34df00a-8f11-10ba-a4ff-adc4242b9b65
   secretId: 9c1ae635-6ea1-7680-4290-688b54855893
   vaultPath: kv/datasource
-
 ---
 spring:
-  profiles:
-    active: test
-  datasource:
-    driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://cherishu-db.csgf2dhd555j.ap-northeast-2.rds.amazonaws.com:5432/postgres?stringtype=unspecified
-    username: postgres
-    password: ${PASSWORD}
-    lifecycle:
-      timeout-per-shutdown-phase: 35s
-    jpa:
-      hibernate:
-        ddl-auto: create
-      properties:
-        hibernate:
-          dialect: org.hibernate.dialect.PostgreSQLDialect
-    data:
-      redis:
-        host: localhost
-        port: 6379
-    mail:
-      host: smtp.gmail.com
-      port: 587
-      username: ${GMAIL_USERNAME}
-      password: ${APP_PASSWORD}
-      properties:
-        mail:
-          smtp:
-            auth: true
-            timeout: 5000
-            starttls:
-              enable: true
+  config:
+    activate:
+      on-profile: blue
 
-  logging:
-    level:
-      org:
-        hibernate:
-          sql: debug
-  aws:
-    ses:
-      access-key: ${SES_ACCESS_KEY}
-      secret-key: ${SES_SECRET_KEY}
+server:
+  port: 8080
 
-  jwt:
-    secret: akwEyVBsYt9djeG77Tejkeo83yzblYcfPQye08f7MGVdjdo19A
-    access-token-expire-time: 30m
-    refresh-token-expire-time: 14d
+serverName : blue_server
+---
+spring:
+  config:
+    activate:
+      on-profile: green
 
+server:
+  port: 8081
+
+serverName : green_server
+---
+spring:
+  config:
+    activate:
+      on-profile: live
+server:
+  address: localhost
+  port: 8080
+
+serverName: local_server
+---
