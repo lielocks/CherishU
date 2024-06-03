@@ -36,7 +36,7 @@ public class ItemService {
     }
 
     public ItemInfoViewDto findItemInfo(Long itemId, Member member) {
-        increaseViews(itemId);
+        increaseViewsUpdating(itemId);
         List<ItemInfoResponseDto> itemResponses = itemRepository.itemResponse(itemId, member);
         ItemInfoResponseDto itemInfoResponseDto = itemResponses.get(0);
 
@@ -65,8 +65,12 @@ public class ItemService {
         return itemInfoViewDto;
     }
 
-    public void increaseViews(Long itemId) {
-        Item item = em.find(Item.class, itemId);
+    public void increaseViewsWithLock(Long itemId) {
+        Item item = itemRepository.findItemById(itemId);
         item.increaseViews();
+    }
+
+    public void increaseViewsUpdating(Long itemId) {
+        itemRepository.updateViews(itemId);
     }
 }
