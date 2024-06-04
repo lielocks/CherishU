@@ -91,4 +91,34 @@ class ItemViewLockTest {
         System.out.println("TIME TAKEN FOR UPDATE MODIFYING TEST : " + (endTime - startTime));
     }
 
+    @Test
+    void increaseViewsRequestLockFacade() throws InterruptedException {
+
+        AtomicInteger successCount = new AtomicInteger();
+        int threadCount = 100;
+        ExecutorService executorService = Executors.newFixedThreadPool(32);
+        CountDownLatch latch = new CountDownLatch(threadCount);
+
+        var startTime = System.currentTimeMillis();
+        for (int i = 0; i < threadCount; i++) {
+            executorService.submit(() -> {
+                try {
+                    itemService.increaseViewsRequestLock(1L);
+                    successCount.getAndIncrement();
+                    System.out.println("SUCCESS");
+                } catch (Exception e) {
+                    System.out.println(e);
+                } finally {
+                    latch.countDown();
+                }
+            });
+        }
+        latch.await();
+
+        var endTime = System.currentTimeMillis();
+
+        assertThat(successCount.get()).isEqualTo(100);
+        System.out.println("TIME TAKEN FOR UPDATE MODIFYING TEST : " + (endTime - startTime));
+    }
+
 }

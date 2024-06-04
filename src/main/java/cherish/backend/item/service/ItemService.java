@@ -19,6 +19,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Service
 @Transactional
@@ -28,6 +32,8 @@ public class ItemService {
     private EntityManager em;
     private final ItemFilterRepository itemFilterRepository;
     private final ItemRepository itemRepository;
+
+    private ConcurrentHashMap<String, Lock> locks =  new ConcurrentHashMap<>();
 
     @Transactional(readOnly = true)
     public Page<ItemSearchResponseDto> searchItem(ItemSearchCondition searchCondition, Member member, Pageable pageable) {
@@ -73,4 +79,24 @@ public class ItemService {
     public void increaseViewsUpdating(Long itemId) {
         itemRepository.updateViews(itemId);
     }
+
+    public void increaseViews(Long itemId) {
+        Item item = itemRepository.findById(itemId).get();
+        item.increaseViews();
+    }
+
+    public void increaseViewsRequestLock(Long id) throws InterruptedException {
+        Lock lock = locks.computeIfAbsent(String.valueOf(id), key -> new ReentrantLock());
+        boolean acquiredLock = lock.tryLock(3, TimeUnit.SECONDS);
+
+        if (!acquiredLock) {
+            throw new RuntimeException("Lock acquired FAILED");
+        }
+        try {
+            increaseViews(id);
+        } finally {
+            lock.unlock();
+        }
+    }
+
 }
