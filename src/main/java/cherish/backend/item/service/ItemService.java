@@ -8,12 +8,11 @@ import cherish.backend.item.model.Item;
 import cherish.backend.item.repository.ItemFilterRepository;
 import cherish.backend.item.repository.ItemRepository;
 import cherish.backend.member.model.Member;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.LinkedHashSet;
@@ -25,11 +24,9 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Service
-@Transactional
 @RequiredArgsConstructor
 public class ItemService {
-    @PersistenceContext
-    private EntityManager em;
+
     private final ItemFilterRepository itemFilterRepository;
     private final ItemRepository itemRepository;
 
@@ -71,18 +68,28 @@ public class ItemService {
         return itemInfoViewDto;
     }
 
+    @Transactional
     public void increaseViewsWithLock(Long itemId) {
         Item item = itemRepository.findItemById(itemId);
         item.increaseViews();
     }
 
+    @Transactional
     public void increaseViewsUpdating(Long itemId) {
         itemRepository.updateViews(itemId);
     }
 
+    @Transactional
     public void increaseViews(Long itemId) {
         Item item = itemRepository.findById(itemId).get();
         item.increaseViews();
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void increaseViewWithNewPropagation(Long itemId) {
+        Item item = itemRepository.findById(itemId).get();
+        item.increaseViews();
+        itemRepository.saveAndFlush(item);
     }
 
     public void increaseViewsRequestLock(Long id) throws InterruptedException {
