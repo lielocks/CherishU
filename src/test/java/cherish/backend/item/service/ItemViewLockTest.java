@@ -1,4 +1,4 @@
-package cherish.backend.item.controller;
+package cherish.backend.item.service;
 
 import cherish.backend.item.model.Item;
 import cherish.backend.item.repository.ItemRepository;
@@ -118,7 +118,7 @@ class ItemViewLockTest {
         var endTime = System.currentTimeMillis();
 
         assertThat(successCount.get()).isEqualTo(100);
-        System.out.println("TIME TAKEN FOR UPDATE MODIFYING TEST : " + (endTime - startTime));
+        System.out.println("TIME TAKEN FOR JAVA LOCK TEST : " + (endTime - startTime));
     }
 
 }

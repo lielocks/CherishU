@@ -1,12 +1,14 @@
 spring:
   profiles:
     active: test
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://cherishu-db.csgf2dhd555j.ap-northeast-2.rds.amazonaws.com:5432/postgres?stringtype=unspecified
+    username: postgres
+    password: ${PASSWORD}
+    hikari:
+      maximum-pool-size: 40
   jpa:
-    datasource:
-      driver-class-name: org.postgresql.Driver
-      url: jdbc:postgresql://cherishu-db.csgf2dhd555j.ap-northeast-2.rds.amazonaws.com:5432/postgres?stringtype=unspecified
-      username: postgres
-      password: ${PASSWORD}
     hibernate:
       ddl-auto: create
     properties:
