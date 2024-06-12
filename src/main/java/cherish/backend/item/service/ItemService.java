@@ -85,13 +85,6 @@ public class ItemService {
         item.increaseViews();
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void increaseViewWithNewPropagation(Long itemId) {
-        Item item = itemRepository.findById(itemId).get();
-        item.increaseViews();
-        itemRepository.saveAndFlush(item);
-    }
-
     public void increaseViewsRequestLock(Long id) throws InterruptedException {
         Lock lock = locks.computeIfAbsent(String.valueOf(id), key -> new ReentrantLock());
         boolean acquiredLock = lock.tryLock(3, TimeUnit.SECONDS);

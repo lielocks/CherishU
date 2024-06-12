@@ -204,7 +204,7 @@ serverName : green_server
 spring:
   config:
     activate:
-      on-profile: live
+      on-profile: local, live
 server:
   address: localhost
   port: 8080

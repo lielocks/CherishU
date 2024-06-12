@@ -30,7 +30,7 @@ class ItemViewLockTest {
                 Item.builder().id(1L).views(0).brand("Aesop").build());
     }
 
-    private void executeParallelTest(int numberOfExecutions, RunnableWithException action, int threadPoolSize) throws InterruptedException {
+    private void executeMultiThread(int numberOfExecutions, RunnableWithException action, int threadPoolSize) throws InterruptedException {
         AtomicInteger successCount = new AtomicInteger();
         ExecutorService service = Executors.newFixedThreadPool(threadPoolSize);
         CountDownLatch latch = new CountDownLatch(numberOfExecutions);
@@ -40,7 +40,7 @@ class ItemViewLockTest {
         for (int i = 0; i < numberOfExecutions; i++) {
             service.execute(() -> {
                 try {
-                    action.run(); // 예외를 처리할 수 있는 커스텀 함수형 인터페이스 사용
+                    action.run(); // 예외(InterruptedException) 를 처리할 수 있는 커스텀 함수형 인터페이스 사용
                     successCount.getAndIncrement();
                     System.out.println("SUCCESS");
                 } catch (Exception e) {
@@ -51,10 +51,11 @@ class ItemViewLockTest {
             });
         }
         latch.await();
-        var endTime = System.currentTimeMillis();
+        var duration = (System.currentTimeMillis() - startTime);
+        double seconds = duration / 1000.0;
 
         assertThat(successCount.get()).isEqualTo(numberOfExecutions);
-        System.out.println("TIME TAKEN : " + (endTime - startTime));
+        System.out.printf("Time Taken %.2f sec", seconds);
     }
 
     @FunctionalInterface
@@ -64,16 +65,16 @@ class ItemViewLockTest {
 
     @Test
     void increaseViewWithPessimisticLockForMultiThreadTest() throws InterruptedException {
-        executeParallelTest(100, () -> itemService.increaseViewsWithLock(1L), 10);
+        executeMultiThread(100, () -> itemService.increaseViewsWithLock(1L), 10);
     }
 
     @Test
     void increaseViewWithUpdateForMultiThreadTest() throws InterruptedException {
-        executeParallelTest(100, () -> itemService.increaseViewsUpdating(1L), 10);
+        executeMultiThread(100, () -> itemService.increaseViewsUpdating(1L), 10);
     }
 
     @Test
     void increaseViewsRequestLockFacade() throws InterruptedException {
-        executeParallelTest(100, () -> itemService.increaseViewsRequestLock(1L), 32);
+        executeMultiThread(100, () -> itemService.increaseViewsRequestLock(1L), 32);
     }
 }
