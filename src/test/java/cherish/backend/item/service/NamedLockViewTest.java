@@ -8,8 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @SpringBootTest
 public class NamedLockViewTest {
@@ -28,19 +29,24 @@ public class NamedLockViewTest {
 
     @Test
     void namedLockForMultiThreadTest() throws InterruptedException {
-        int numThreads = 10;
-        CountDownLatch latch = new CountDownLatch(numThreads);
-        Executor taskExecutor = Executors.newFixedThreadPool(numThreads);
+        AtomicInteger successCount = new AtomicInteger();
+        ExecutorService service = Executors.newFixedThreadPool(10);
+        CountDownLatch latch = new CountDownLatch(100);
 
-        for (int i = 0; i < numThreads; i++) {
-            taskExecutor.execute(() -> {
-                lockFacade.increase(1L);
-                latch.countDown();
+        for (int i = 0; i < 100; i++) {
+            service.execute(() -> {
+                try {
+                    lockFacade.increase(1L);
+                    successCount.getAndIncrement();
+                } catch (Exception e) {
+                    System.out.println(e);
+                } finally {
+                    latch.countDown();
+                }
             });
         }
-
         latch.await();
-        Item updatedItem = itemRepository.findById(1L).orElseThrow();
-        System.out.println("views : " + updatedItem.getViews());
+
+        System.out.println("views : " + itemRepository.findById(1L).get().getViews());
     }
 }
