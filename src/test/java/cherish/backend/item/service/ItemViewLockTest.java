@@ -13,6 +13,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static cherish.backend.util.ExecutorUtils.printState;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
@@ -32,17 +33,17 @@ class ItemViewLockTest {
 
     private void executeMultiThread(int numberOfExecutions, RunnableWithException action, int threadPoolSize) throws InterruptedException {
         AtomicInteger successCount = new AtomicInteger();
-        ExecutorService service = Executors.newFixedThreadPool(threadPoolSize);
+        ExecutorService es = Executors.newFixedThreadPool(threadPoolSize);
         CountDownLatch latch = new CountDownLatch(numberOfExecutions);
 
         var startTime = System.currentTimeMillis();
 
         for (int i = 0; i < numberOfExecutions; i++) {
-            service.execute(() -> {
+            es.execute(() -> {
                 try {
                     action.run(); // 예외(InterruptedException) 를 처리할 수 있는 커스텀 함수형 인터페이스 사용
                     successCount.getAndIncrement();
-                    System.out.println("SUCCESS");
+                    printState(es);
                 } catch (Exception e) {
                     System.out.println(e);
                 } finally {
