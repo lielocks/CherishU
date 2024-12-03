@@ -184,6 +184,27 @@ public class ItemFilterRepositoryImpl implements ItemFilterRepositoryCustom{
         return PageableExecutionUtils.getPage(content, pageable, total::fetchOne);
     }
 
+    @Override
+    public Page<SortSearchResponseDto> sortItem(SortCondition sortCondition, Pageable pageable) {
+        JPAQuery<SortSearchResponseDto> mainSearchQuery = queryDslConfig.jpaQueryFactory()
+                .select(Projections.constructor(SortSearchResponseDto.class,
+                        item.id, item.name, item.brand, item.description, item.price, item.imgUrl, item.views, item.modifiedDate))
+                .from(item);
+
+        JPAQuery<Long> total = queryDslConfig.jpaQueryFactory()
+                .select(item.count())
+                .from(item);
+
+        List<SortSearchResponseDto> content = mainSearchQuery
+                .orderBy(getOrderSpecifier(sortCondition.getSort())) // 기본 정렬
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        // 페이지 처리
+        return PageableExecutionUtils.getPage(content, pageable, total::fetchOne);
+    }
+
     private OrderSpecifier<?> getOrderSpecifier(final String sort) {
         if (StringUtils.isEmpty(sort)) {
             return new OrderSpecifier<>(Order.ASC, item.id);

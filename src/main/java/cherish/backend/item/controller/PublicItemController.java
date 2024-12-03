@@ -3,10 +3,7 @@ package cherish.backend.item.controller;
 import cherish.backend.auth.security.CurrentUser;
 import cherish.backend.common.dto.PageResponse;
 import cherish.backend.item.constant.ItemSortConstants;
-import cherish.backend.item.dto.ItemInfoViewDto;
-import cherish.backend.item.dto.ItemSearchCondition;
-import cherish.backend.item.dto.ItemSearchResponseDto;
-import cherish.backend.item.dto.RecommendKeywordResponseDto;
+import cherish.backend.item.dto.*;
 import cherish.backend.item.service.ItemService;
 import cherish.backend.item.service.RecommendKeywordService;
 import cherish.backend.member.model.Member;
@@ -32,6 +29,12 @@ public class PublicItemController {
             throw new IllegalArgumentException("지원하지 않는 정렬입니다: " + condition.getSort());
         }
         Page<ItemSearchResponseDto> page = itemService.searchItem(condition, member, pageable);
+        return new PageResponse<>(page);
+    }
+
+    @GetMapping("/search/v2")
+    public PageResponse<SortSearchResponseDto> searchItemOnlyWithSort(SortCondition sortCondition, Pageable pageable) {
+        Page<SortSearchResponseDto> page = itemService.searchItemOnlySorting(sortCondition, pageable);
         return new PageResponse<>(page);
     }
 

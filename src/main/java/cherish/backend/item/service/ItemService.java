@@ -1,9 +1,6 @@
 package cherish.backend.item.service;
 
-import cherish.backend.item.dto.ItemInfoResponseDto;
-import cherish.backend.item.dto.ItemInfoViewDto;
-import cherish.backend.item.dto.ItemSearchCondition;
-import cherish.backend.item.dto.ItemSearchResponseDto;
+import cherish.backend.item.dto.*;
 import cherish.backend.item.model.Item;
 import cherish.backend.item.repository.ItemFilterRepository;
 import cherish.backend.item.repository.ItemRepository;
@@ -35,6 +32,11 @@ public class ItemService {
     public Page<ItemSearchResponseDto> searchItem(ItemSearchCondition searchCondition, Member member, Pageable pageable) {
         Page<ItemSearchResponseDto> response = itemFilterRepository.searchItem(searchCondition, member, pageable);
         return response;
+    }
+
+    @Transactional(readOnly = true)
+    public Page<SortSearchResponseDto> searchItemOnlySorting(SortCondition sortCondition, Pageable pageable) {
+        return itemFilterRepository.sortItem(sortCondition, pageable);
     }
 
     public ItemInfoViewDto findItemInfo(Long itemId, Member member) {
