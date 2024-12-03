@@ -1,6 +1,7 @@
 HELP.md
 .gradle
 out
+out/
 ngrinder-controller/
 build/
 !gradle/wrapper/gradle-wrapper.jar
