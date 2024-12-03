@@ -30,7 +30,7 @@ spring:
         password: ${ADMIN_SERVER_PASSWORD}
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://cherishu-db.csgf2dhd555j.ap-northeast-2.rds.amazonaws.com:5432/postgres?stringtype=unspecified
+    url: jdbc:postgresql://cherishu.ch4c2gs2q8nw.ap-northeast-2.rds.amazonaws.com:5432/postgres?stringtype=unspecified
     username: postgres
     password: ${PASSWORD}
   lifecycle:

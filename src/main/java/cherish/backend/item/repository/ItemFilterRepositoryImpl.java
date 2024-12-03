@@ -181,7 +181,7 @@ public class ItemFilterRepositoryImpl implements ItemFilterRepositoryCustom{
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        return PageableExecutionUtils.getPage(content, pageable, total::fetchFirst);
+        return PageableExecutionUtils.getPage(content, pageable, total::fetchOne);
     }
 
     private OrderSpecifier<?> getOrderSpecifier(final String sort) {
