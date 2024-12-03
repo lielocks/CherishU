@@ -15,4 +15,6 @@ public interface ItemFilterRepositoryCustom {
 
     Page<ItemSearchResponseDto> searchItem(ItemSearchCondition searchCondition, Member member, Pageable pageable);
 
+    Page<SortSearchResponseDto> sortItem(SortCondition sortCondition, Pageable pageable);
+
 }
