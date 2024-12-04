@@ -38,6 +38,12 @@ public class PublicItemController {
         return new PageResponse<>(page);
     }
 
+    @GetMapping("/search/v3")
+    public PageResponse<SortSearchResponseDto> searchItemWithCache(SortCondition sortCondition, Pageable pageable) {
+        Page<SortSearchResponseDto> page = itemService.searchItemWithCache(sortCondition, pageable);
+        return new PageResponse<>(page);
+    }
+
     @GetMapping("/{itemId}")
     public ItemInfoViewDto findItemInformation(@PathVariable Long itemId, @CurrentUser Member member) {
         return itemService.findItemInfo(itemId, member);
