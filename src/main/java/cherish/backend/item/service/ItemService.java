@@ -6,6 +6,8 @@ import cherish.backend.item.repository.ItemFilterRepository;
 import cherish.backend.item.repository.ItemRepository;
 import cherish.backend.member.model.Member;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -25,6 +27,7 @@ public class ItemService {
 
     private final ItemFilterRepository itemFilterRepository;
     private final ItemRepository itemRepository;
+    private final CacheManager cacheManager;
 
     private ConcurrentHashMap<String, Lock> locks =  new ConcurrentHashMap<>();
 
@@ -37,6 +40,24 @@ public class ItemService {
     @Transactional(readOnly = true)
     public Page<SortSearchResponseDto> searchItemOnlySorting(SortCondition sortCondition, Pageable pageable) {
         return itemFilterRepository.sortItem(sortCondition, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<SortSearchResponseDto> searchItemWithCache(SortCondition sortCondition, Pageable pageable) {
+        String cacheKey = sortCondition.toString() + "-" + (pageable.getPageNumber() + 1) + "-" + pageable.getPageSize();
+        if (pageable.getPageNumber() >= 0 && pageable.getPageNumber() < 10) {
+            Page<SortSearchResponseDto> cachedPage = cacheManager.getCache("sortPageCache").get(cacheKey, Page.class);
+            if (cachedPage != null) {
+                return cachedPage;
+            }
+        }
+
+        Page<SortSearchResponseDto> page = itemFilterRepository.sortItem(sortCondition, pageable);
+        if (pageable.getPageNumber() >= 0 && pageable.getPageNumber() < 10) {
+            cacheManager.getCache("sortPageCache").put(cacheKey, page);
+        }
+
+        return page;
     }
 
     public ItemInfoViewDto findItemInfo(Long itemId, Member member) {

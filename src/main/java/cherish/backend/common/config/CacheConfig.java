@@ -1,30 +1,44 @@
 package cherish.backend.common.config;
 
+import cherish.backend.common.constant.CacheType;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cache.caffeine.CaffeineCacheManager;
+import org.springframework.cache.caffeine.CaffeineCache;
+import org.springframework.cache.support.SimpleCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 
-import java.time.Duration;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Configuration
+@Slf4j
 @EnableCaching
 public class CacheConfig {
 
-    public Caffeine<Object, Object> caffeineConfig() {
-        return Caffeine.newBuilder()
-                .expireAfterWrite(Duration.ofMinutes(1))
-                .maximumSize(500)
-                .weakValues();
+    @Bean
+    public List<CaffeineCache> caffeineConfig() {
+
+        return Arrays.stream(CacheType.values())
+                .map(cache -> new CaffeineCache(
+                        cache.getCacheName(),
+                        Caffeine.newBuilder()
+                                .recordStats()
+                                .expireAfterWrite(cache.getExpireAfterWrite(), TimeUnit.SECONDS)
+                                .maximumSize(cache.getMaximumSize())
+                                .build()
+                ))
+                .peek(cache -> log.info("Configured cache :: {} ", cache.getName()))
+                .toList();
     }
 
-    @Primary
     @Bean
-    public CaffeineCacheManager caffeineCacheManager() {
-        CaffeineCacheManager caffeineCacheManager = new CaffeineCacheManager();
-        caffeineCacheManager.setCaffeine(caffeineConfig());
-        return caffeineCacheManager;
+    public CacheManager cacheManager(List<CaffeineCache> caffeineCaches) {
+        final SimpleCacheManager cacheManager = new SimpleCacheManager();
+        cacheManager.setCaches(caffeineCaches);
+        return cacheManager;
     }
 }
