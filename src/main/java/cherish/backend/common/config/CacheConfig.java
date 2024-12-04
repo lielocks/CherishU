@@ -27,7 +27,7 @@ public class CacheConfig {
                         cache.getCacheName(),
                         Caffeine.newBuilder()
                                 .recordStats()
-                                .expireAfterWrite(cache.getExpireAfterWrite(), TimeUnit.SECONDS)
+                                .expireAfterWrite(cache.getExpireAfterWrite(), TimeUnit.MINUTES)
                                 .maximumSize(cache.getMaximumSize())
                                 .build()
                 ))
