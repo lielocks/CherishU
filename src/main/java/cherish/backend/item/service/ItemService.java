@@ -8,6 +8,7 @@ import cherish.backend.member.model.Member;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -42,22 +43,12 @@ public class ItemService {
         return itemFilterRepository.sortItem(sortCondition, pageable);
     }
 
+
+    @Cacheable(value = "sortPageCache", key = "#sortCondition.toString() + '-' + (#pageable.pageNumber + 1) + '-' + #pageable.pageSize",
+            condition = "#pageable.pageNumber >= 0 && #pageable.pageNumber < 10")
     @Transactional(readOnly = true)
     public Page<SortSearchResponseDto> searchItemWithCache(SortCondition sortCondition, Pageable pageable) {
-        String cacheKey = sortCondition.toString() + "-" + (pageable.getPageNumber() + 1) + "-" + pageable.getPageSize();
-        if (pageable.getPageNumber() >= 0 && pageable.getPageNumber() < 10) {
-            Page<SortSearchResponseDto> cachedPage = cacheManager.getCache("sortPageCache").get(cacheKey, Page.class);
-            if (cachedPage != null) {
-                return cachedPage;
-            }
-        }
-
-        Page<SortSearchResponseDto> page = itemFilterRepository.sortItem(sortCondition, pageable);
-        if (pageable.getPageNumber() >= 0 && pageable.getPageNumber() < 10) {
-            cacheManager.getCache("sortPageCache").put(cacheKey, page);
-        }
-
-        return page;
+        return itemFilterRepository.sortItem(sortCondition, pageable);
     }
 
     public ItemInfoViewDto findItemInfo(Long itemId, Member member) {
