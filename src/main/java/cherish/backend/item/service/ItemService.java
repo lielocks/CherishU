@@ -38,8 +38,7 @@ public class ItemService {
         return response;
     }
 
-    @Cacheable(value = "sortPageCache", key = "#searchCondition.getSort().toString() + '-' + (#pageable.pageNumber + 1) + '-' + #pageable.pageSize",
-            condition = "#pageable.pageNumber >= 0 && #pageable.pageNumber < 10")
+    @Cacheable(value = "sortPageCache")
     @Transactional(readOnly = true)
     public Page<ItemSearchResponseDto> searchItemWithCaching(ItemSearchCondition searchCondition, Member member, Pageable pageable) {
         Page<ItemSearchResponseDto> response = itemFilterRepository.searchItem(searchCondition, member, pageable);
