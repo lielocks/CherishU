@@ -33,16 +33,14 @@ public class PublicItemController {
     }
 
     @GetMapping("/search/v2")
-    public PageResponse<SortSearchResponseDto> searchItemOnlyWithSort(SortCondition sortCondition, Pageable pageable) {
-        Page<SortSearchResponseDto> page = itemService.searchItemOnlySorting(sortCondition, pageable);
+    public PageResponse<ItemSearchResponseDto> searchItemWithCaching(ItemSearchCondition condition, @CurrentUser Member member, Pageable pageable) {
+        if (condition.getSort() != null && !ItemSortConstants.SORT_OPTIONS.contains(condition.getSort())) {
+            throw new IllegalArgumentException("지원하지 않는 정렬입니다: " + condition.getSort());
+        }
+        Page<ItemSearchResponseDto> page = itemService.searchItemWithCaching(condition, member, pageable);
         return new PageResponse<>(page);
     }
 
-    @GetMapping("/search/v3")
-    public PageResponse<SortSearchResponseDto> searchItemWithCache(SortCondition sortCondition, Pageable pageable) {
-        Page<SortSearchResponseDto> page = itemService.searchItemWithCache(sortCondition, pageable);
-        return new PageResponse<>(page);
-    }
 
     @GetMapping("/{itemId}")
     public ItemInfoViewDto findItemInformation(@PathVariable Long itemId, @CurrentUser Member member) {

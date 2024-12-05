@@ -38,17 +38,12 @@ public class ItemService {
         return response;
     }
 
-    @Transactional(readOnly = true)
-    public Page<SortSearchResponseDto> searchItemOnlySorting(SortCondition sortCondition, Pageable pageable) {
-        return itemFilterRepository.sortItem(sortCondition, pageable);
-    }
-
-
-    @Cacheable(value = "sortPageCache", key = "#sortCondition.toString() + '-' + (#pageable.pageNumber + 1) + '-' + #pageable.pageSize",
+    @Cacheable(value = "sortPageCache", key = "#searchCondition.getSort().toString() + '-' + (#pageable.pageNumber + 1) + '-' + #pageable.pageSize",
             condition = "#pageable.pageNumber >= 0 && #pageable.pageNumber < 10")
     @Transactional(readOnly = true)
-    public Page<SortSearchResponseDto> searchItemWithCache(SortCondition sortCondition, Pageable pageable) {
-        return itemFilterRepository.sortItem(sortCondition, pageable);
+    public Page<ItemSearchResponseDto> searchItemWithCaching(ItemSearchCondition searchCondition, Member member, Pageable pageable) {
+        Page<ItemSearchResponseDto> response = itemFilterRepository.searchItem(searchCondition, member, pageable);
+        return response;
     }
 
     public ItemInfoViewDto findItemInfo(Long itemId, Member member) {
