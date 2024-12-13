@@ -72,6 +72,10 @@ dependencies {
     implementation 'com.opencsv:opencsv:5.5.2' //csv open library
     implementation 'org.apache.commons:commons-lang3:3.12.0'
 
+    //firebase
+    implementation 'com.google.firebase:firebase-admin:9.4.1'
+    implementation group: 'com.squareup.okhttp3', name: 'okhttp', version: '4.11.0'
+
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'de.codecentric:spring-boot-admin-starter-client:3.0.4'
 }
