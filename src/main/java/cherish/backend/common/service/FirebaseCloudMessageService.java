@@ -11,11 +11,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @Component
 @Slf4j
@@ -26,6 +28,7 @@ public class FirebaseCloudMessageService {
     private final FirebaseProperties firebaseProperties;
     private final ObjectMapper objectMapper;
 
+    @Async
     public void sendMessageTo(String targetToken, String title, String body) throws IOException {
 
         String message = makeMessage(targetToken, title, body);
