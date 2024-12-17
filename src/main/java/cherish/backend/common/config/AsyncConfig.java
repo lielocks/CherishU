@@ -19,7 +19,7 @@ public class AsyncConfig implements AsyncConfigurer {
     @Bean(name = "alarmExecutor")
     public Executor getAsyncExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(60);
+        executor.setCorePoolSize(70);
         executor.setThreadNamePrefix(CommonConstants.ALARM_TASK_EXECUTOR_NAME);
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
         executor.initialize();
