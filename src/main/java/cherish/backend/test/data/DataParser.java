@@ -291,7 +291,10 @@ public class DataParser {
     @PostConstruct
     public void test() {
         try {
+            long startTimeMillis = System.currentTimeMillis();
             read();
+            long endTimeMillis = System.currentTimeMillis();
+            log.info("Data Parser V1 Insert time : {}", (endTimeMillis - startTimeMillis));
         } catch (Exception e) {
             log.error(e.getMessage());
         }
