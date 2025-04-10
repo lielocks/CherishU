@@ -81,6 +81,16 @@ spring:
           timeout: 5000
           starttls:
             enable: true
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
+
+rabbitmq:
+  queue.name: sample.queue
+  exchange.name: sample.exchange
+  routing.key: sample.key
 
 decorator:
   datasource:

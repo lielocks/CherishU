@@ -78,6 +78,9 @@ dependencies {
     implementation 'org.apache.httpcomponents.client5:httpclient5:5.2'
     implementation 'org.apache.httpcomponents.core5:httpcore5:5.3'
 
+    //rabbitMQ
+    implementation 'org.springframework.boot:spring-boot-starter-amqp'
+
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'de.codecentric:spring-boot-admin-starter-client:3.0.4'
 }
