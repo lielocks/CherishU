@@ -24,7 +24,7 @@ import java.io.InputStreamReader;
 import java.util.List;
 
 @ConditionalOnResource(resources = "data.csv")
-@Profile("put-data")
+//@Profile("put-data")
 @Slf4j
 @RequiredArgsConstructor
 @Component
