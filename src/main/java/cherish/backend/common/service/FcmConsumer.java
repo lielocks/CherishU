@@ -15,7 +15,7 @@ public class FcmConsumer {
 
     @RabbitListener(queues = "${rabbitmq.queue.name}", containerFactory = "rabbitListenerContainerFactory")
     public void consumeFcmMessage(FcmTokenRequestDto dto) {
-        firebaseService.sendMessage(dto.getTargetToken(), dto.getTitle(), dto.getBody());
+        firebaseService.enqueueMessage(dto);
     }
 
 }
