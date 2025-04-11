@@ -34,4 +34,21 @@ public class FirebaseCloudMessageService {
         }
     }
 
+    public void sendMessage(String targetToken, String title, String body) {
+        try {
+            Message message = Message.builder()
+                    .setToken(targetToken)
+                    .setNotification(Notification.builder()
+                            .setTitle(title)
+                            .setBody(body)
+                            .build())
+                    .build();
+
+            // 동기 전송
+            FirebaseMessaging.getInstance().send(message);
+        } catch (Exception e) {
+            log.error("Error sending message to {}: {}", targetToken, e.getMessage());
+        }
+    }
+
 }
