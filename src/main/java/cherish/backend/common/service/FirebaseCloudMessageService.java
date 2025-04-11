@@ -1,6 +1,7 @@
 package cherish.backend.common.service;
 
 import cherish.backend.common.dto.FcmTokenRequestDto;
+import com.google.common.util.concurrent.RateLimiter;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.Notification;
@@ -23,7 +24,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class FirebaseCloudMessageService {
 
     private final BlockingQueue<FcmTokenRequestDto> queue = new LinkedBlockingQueue<>(20000); // 큐 최대 사이즈
-    private final ExecutorService executorService = Executors.newFixedThreadPool(5); // 스레드 수 제한
+    private final ExecutorService executorService = Executors.newFixedThreadPool(5);
+    private final RateLimiter rateLimiter = RateLimiter.create(200);
 
     @PostConstruct
     public void init() {
@@ -46,7 +48,6 @@ public class FirebaseCloudMessageService {
             try {
                 FcmTokenRequestDto dto = queue.take();
                 sendMessage(dto);
-                Thread.sleep(5);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 break;
@@ -56,6 +57,7 @@ public class FirebaseCloudMessageService {
 
     private void sendMessage(FcmTokenRequestDto dto) {
         try {
+            rateLimiter.acquire();
             Message message = Message.builder()
                     .setToken(dto.getTargetToken())
                     .setNotification(Notification.builder()
