@@ -22,7 +22,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 @RequiredArgsConstructor
 public class FirebaseCloudMessageService {
 
-    private final BlockingQueue<FcmTokenRequestDto> queue = new LinkedBlockingQueue<>(10000); // 큐 최대 사이즈
+    private final BlockingQueue<FcmTokenRequestDto> queue = new LinkedBlockingQueue<>(20000); // 큐 최대 사이즈
     private final ExecutorService executorService = Executors.newFixedThreadPool(5); // 스레드 수 제한
 
     @PostConstruct
@@ -44,8 +44,9 @@ public class FirebaseCloudMessageService {
     private void processQueue() {
         while (true) {
             try {
-                FcmTokenRequestDto dto = queue.take(); // blocking
+                FcmTokenRequestDto dto = queue.take();
                 sendMessage(dto);
+                Thread.sleep(5);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 break;
