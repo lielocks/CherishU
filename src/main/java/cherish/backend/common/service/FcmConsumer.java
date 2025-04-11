@@ -17,11 +17,6 @@ public class FcmConsumer {
 
     private final AtomicInteger counter = new AtomicInteger(0);
 
-//    @RabbitListener(queues = "${rabbitmq.queue.name}", containerFactory = "rabbitListenerContainerFactory")
-//    public void consumeFcmMessage(FcmTokenRequestDto dto) {
-//        firebaseService.enqueueMessage(dto);
-//    }
-
     @RabbitListener(queues = "${rabbitmq.queue.name}", containerFactory = "rabbitListenerContainerFactory")
     public void consumeFcmMessage(FcmTokenRequestDto dto) {
         firebaseService.enqueueMessage(dto);
