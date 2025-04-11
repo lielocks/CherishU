@@ -13,7 +13,7 @@ public class FcmConsumer {
 
     private final FirebaseCloudMessageService firebaseService;
 
-    @RabbitListener(queues = "${rabbitmq.queue.name}", concurrency = "2")
+    @RabbitListener(queues = "${rabbitmq.queue.name}", containerFactory = "rabbitListenerContainerFactory")
     public void consumeFcmMessage(FcmTokenRequestDto dto) {
         firebaseService.sendMessage(dto.getTargetToken(), dto.getTitle(), dto.getBody());
     }
