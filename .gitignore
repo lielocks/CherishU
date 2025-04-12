@@ -3,6 +3,7 @@ HELP.md
 out
 out/
 ngrinder-controller/
+grafana-data/
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
