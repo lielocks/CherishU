@@ -21,7 +21,7 @@ import java.util.concurrent.*;
 public class FirebaseCloudMessageService {
 
     private final BlockingQueue<FcmTokenRequestDto> queue = new LinkedBlockingQueue<>(5000); // 큐 최대 사이즈
-    private final ExecutorService executorService = Executors.newFixedThreadPool(5);
+    private final ExecutorService executorService = Executors.newFixedThreadPool(20);
     private final RateLimiter rateLimiter = RateLimiter.create(80);
 
     @PostConstruct
@@ -70,8 +70,7 @@ public class FirebaseCloudMessageService {
                                 .build())
                         .build();
 
-                String response = FirebaseMessaging.getInstance().send(message);
-                log.info("Successfully sent to {}: {}", dto.getTargetToken(), response);
+                FirebaseMessaging.getInstance().send(message);
             } else {
                 log.warn("Rate limit exceeded. Dropping or delaying message to {}", dto.getTargetToken());
             }
