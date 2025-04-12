@@ -20,15 +20,6 @@ public class FcmConsumer {
     @RabbitListener(queues = "${rabbitmq.queue.name}", containerFactory = "rabbitListenerContainerFactory")
     public void consumeFcmMessage(FcmTokenRequestDto dto) {
         firebaseService.enqueueMessage(dto);
-
-        // 100건마다 50ms 쉬어가기
-        if (counter.incrementAndGet() % 100 == 0) {
-            try {
-                Thread.sleep(50);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-        }
     }
 
 }

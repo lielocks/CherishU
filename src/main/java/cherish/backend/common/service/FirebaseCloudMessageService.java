@@ -12,10 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.*;
 
 
 @Component
@@ -25,7 +22,7 @@ public class FirebaseCloudMessageService {
 
     private final BlockingQueue<FcmTokenRequestDto> queue = new LinkedBlockingQueue<>(20000); // 큐 최대 사이즈
     private final ExecutorService executorService = Executors.newFixedThreadPool(5);
-    private final RateLimiter rateLimiter = RateLimiter.create(200);
+    private final RateLimiter rateLimiter = RateLimiter.create(150);
 
     @PostConstruct
     public void init() {
@@ -36,38 +33,48 @@ public class FirebaseCloudMessageService {
 
     public void enqueueMessage(FcmTokenRequestDto dto) {
         try {
-            queue.put(dto); // 큐가 꽉 차면 블로킹됨 → 유실 없음
+            boolean success = queue.offer(dto, 50, TimeUnit.MILLISECONDS);
+            if (!success) {
+                log.warn("Queue offer 실패! Delaying message to : {}", dto.getTargetToken());
+            }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            log.error("Queue put interrupted: {}", e.getMessage(), e);
+            log.error("Queue offer interrupted : {}", e.getMessage(), e);
         }
     }
 
     private void processQueue() {
-        while (true) {
+        while (!Thread.currentThread().isInterrupted()) {
             try {
-                FcmTokenRequestDto dto = queue.take();
-                sendMessage(dto);
+                FcmTokenRequestDto dto = queue.poll(100, TimeUnit.MILLISECONDS); // 없으면 잠깐 쉼
+                if (dto != null) {
+                    sendMessage(dto);
+                }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 break;
+            } catch (Exception e) {
+                log.error("Unexpected error in queue processing: {}", e.getMessage(), e);
             }
         }
     }
 
     private void sendMessage(FcmTokenRequestDto dto) {
         try {
-            rateLimiter.acquire();
-            Message message = Message.builder()
-                    .setToken(dto.getTargetToken())
-                    .setNotification(Notification.builder()
-                            .setTitle(dto.getTitle())
-                            .setBody(dto.getBody())
-                            .build())
-                    .build();
+            if (rateLimiter.tryAcquire(10, TimeUnit.MILLISECONDS)) { // burst 완화
+                Message message = Message.builder()
+                        .setToken(dto.getTargetToken())
+                        .setNotification(Notification.builder()
+                                .setTitle(dto.getTitle())
+                                .setBody(dto.getBody())
+                                .build())
+                        .build();
 
-            String response = FirebaseMessaging.getInstance().send(message);
-            log.info("Successfully sent to {}: {}", dto.getTargetToken(), response);
+                String response = FirebaseMessaging.getInstance().send(message);
+                log.info("Successfully sent to {}: {}", dto.getTargetToken(), response);
+            } else {
+                log.warn("Rate limit exceeded. Dropping or delaying message to {}", dto.getTargetToken());
+            }
         } catch (Exception e) {
             log.error("Error sending message to {}: {}", dto.getTargetToken(), e.getMessage(), e);
         }
