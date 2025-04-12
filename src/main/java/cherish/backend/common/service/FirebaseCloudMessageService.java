@@ -20,9 +20,9 @@ import java.util.concurrent.*;
 @RequiredArgsConstructor
 public class FirebaseCloudMessageService {
 
-    private final BlockingQueue<FcmTokenRequestDto> queue = new LinkedBlockingQueue<>(20000); // 큐 최대 사이즈
+    private final BlockingQueue<FcmTokenRequestDto> queue = new LinkedBlockingQueue<>(5000); // 큐 최대 사이즈
     private final ExecutorService executorService = Executors.newFixedThreadPool(5);
-    private final RateLimiter rateLimiter = RateLimiter.create(150);
+    private final RateLimiter rateLimiter = RateLimiter.create(80);
 
     @PostConstruct
     public void init() {
