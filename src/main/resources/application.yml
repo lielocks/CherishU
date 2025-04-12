@@ -133,6 +133,10 @@ cors:
 
 management:
   endpoint:
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
     health:
       enabled: true
       show-components: always
@@ -152,7 +156,11 @@ management:
     web:
       base-path: /monitor
       exposure:
-        include: "info, health, httpexchanges, loggers, logfile"
+        include: "info, health, httpexchanges, loggers, logfile, prometheus"
+  metrics:
+    tags:
+      application: monitoring
+
 ---
 spring:
   config:
