@@ -88,9 +88,22 @@ spring:
     password: ${RABBITMQ_PASSWORD}
 
 rabbitmq:
-  queue.name: sample.queue
-  exchange.name: sample.exchange
-  routing.key: sample.key
+  queue:
+    name: sample.queue
+    retry:
+      name: sample.queue.retry
+    dead-letter:
+      name: sample.queue.dlq
+  exchange:
+    name: sample.exchange
+    dead-letter:
+      name: sample.exchange.dlq
+  routing:
+    key: sample.key
+    retry:
+      key: sample.key.retry
+    dead-letter:
+      key: sample.key.dlq
 
 decorator:
   datasource:
