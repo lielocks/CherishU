@@ -1,19 +1,17 @@
 package cherish.backend.common.config;
 
-import org.springframework.amqp.core.Binding;
-import org.springframework.amqp.core.BindingBuilder;
-import org.springframework.amqp.core.DirectExchange;
-import org.springframework.amqp.core.Queue;
-import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
+import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.amqp.SimpleRabbitListenerContainerFactoryConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Configuration
 public class RabbitMQConfig {
@@ -39,43 +37,31 @@ public class RabbitMQConfig {
     @Value("${rabbitmq.routing.key}")
     private String routingKey;
 
-    /**
-     * 지정된 큐 이름으로 Queue 빈을 생성
-     *
-     * @return Queue 빈 객체
-     */
+    @Value("${rabbitmq.exchange.dead-letter.name}")
+    private String deadLetterExchangeName;
+
+    @Value("${rabbitmq.routing.dead-letter.key}")
+    private String deadLetterRoutingKey;
+
+
     @Bean
-    public Queue queue() {
-        return new Queue(queueName);
+    public Queue mainQueue() {
+        Map<String, Object> args = new HashMap<>();
+        args.put("x-dead-letter-exchange", deadLetterExchangeName);
+        args.put("x-dead-letter-routing-key", deadLetterRoutingKey);
+        return QueueBuilder.durable(queueName).withArguments(args).build();
     }
 
-    /**
-     * 지정된 익스체인지 이름으로 DirectExchange 빈을 생성
-     *
-     * @return TopicExchange 빈 객체
-     */
     @Bean
-    public DirectExchange exchange() {
+    public DirectExchange mainExchange() {
         return new DirectExchange(exchangeName);
     }
 
-    /**
-     * 주어진 큐와 익스체인지를 바인딩하고 라우팅 키를 사용하여 Binding 빈을 생성
-     *
-     * @param queue    바인딩할 Queue
-     * @param exchange 바인딩할 TopicExchange
-     * @return Binding 빈 객체
-     */
     @Bean
-    public Binding binding(Queue queue, DirectExchange exchange) {
-        return BindingBuilder.bind(queue).to(exchange).with(routingKey);
+    public Binding mainBinding() {
+        return BindingBuilder.bind(mainQueue()).to(mainExchange()).with(routingKey);
     }
 
-    /**
-     * RabbitMQ 연결을 위한 ConnectionFactory 빈을 생성하여 반환
-     *
-     * @return ConnectionFactory 객체
-     */
     @Bean
     public ConnectionFactory connectionFactory() {
         CachingConnectionFactory connectionFactory = new CachingConnectionFactory();
@@ -86,43 +72,17 @@ public class RabbitMQConfig {
         return connectionFactory;
     }
 
-    /**
-     * RabbitTemplate을 생성하여 반환
-     *
-     * @param connectionFactory RabbitMQ와의 연결을 위한 ConnectionFactory 객체
-     * @return RabbitTemplate 객체
-     */
     @Bean
     public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
         RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
-        // JSON 형식의 메시지를 직렬화하고 역직렬할 수 있도록 설정
         rabbitTemplate.setMessageConverter(jackson2JsonMessageConverter());
+        rabbitTemplate.setMandatory(true);
         return rabbitTemplate;
     }
 
-    /**
-     * Jackson 라이브러리를 사용하여 메시지를 JSON 형식으로 변환하는 MessageConverter 빈을 생성
-     *
-     * @return MessageConverter 객체
-     */
     @Bean
     public MessageConverter jackson2JsonMessageConverter() {
         return new Jackson2JsonMessageConverter();
-    }
-
-    @Bean
-    public SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory(
-            ConnectionFactory connectionFactory,
-            SimpleRabbitListenerContainerFactoryConfigurer configurer) {
-
-        SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
-        configurer.configure(factory, connectionFactory);
-
-        factory.setPrefetchCount(1);
-        factory.setConcurrentConsumers(1);
-        factory.setMaxConcurrentConsumers(2);
-
-        return factory;
     }
 
 }
